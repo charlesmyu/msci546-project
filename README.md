@@ -1,6 +1,17 @@
 # Data
 [Link to Kaggle](https://www.kaggle.com/competitions/godaddy-microbusiness-density-forecasting/data)
 [Link to Census](https://data.census.gov/)
+
+__Note on census data:__  
+These datasets usually contain a 14 digit `GEO_ID` denoting the county to which the data applies to. For example, `0500000US48201`.
+- `050` represents summary level of the data
+- `0000` represetns the geographic variant & component
+- `US` represents the United States
+- `48` represents the State FIPS code (Texas in this case)
+- `201` represents the County FIPS code (Harris County in this case)
+
+Note that county FIPS codes are only unique within a given state. Thus, we really only care about the last 5 digits of the `GEO_ID`, as that is what corresponds to the `cfips` in the Kaggle data. 
+
 ## density.csv
 Contains `microbuseinss_density` for each county FIPS and month, which is our target variable.
 
