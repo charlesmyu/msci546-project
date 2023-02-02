@@ -63,5 +63,13 @@ The percentage fields were derived from the raw counts provided by the ACS. All 
 - `pct_house_price_500k_1mill` - Proportion of houses on market listed between $500k - $999k (B25085)
 - `pct_house_price_250k_500k` - Proportion of houses on market listed between $250k - $499k (B25085)
 - `pct_house_price_100k_250k` - Proportion of houses on market listed between $100k - $249k (B25085)
-- `pct_divorced` - Proportion of the population aged 15+ who are divorced
-- `pct_never_married` - Proportion of the population aged 15+ who have never married
+- `pct_divorced` - Proportion of the population aged 15+ who are divorced (S1201)
+- `pct_never_married` - Proportion of the population aged 15+ who have never married (S1201)
+- `birth_rate` - Births per thousand woman aged 15-50 (S1301)
+- `pct_new_young_mothers` - Proportion of population aged 15-19 who have given birth in last 12 months (S1301)
+- `pct_insured` - Proportion of noninstitutionalized population that is insured (S2701)
+- `pct_disabled` - Proportion of noninstitutionalized population that is disabled (S1810)
+- `pct_snap_households` - Proportion of households on foodstamps/SNAP (S2201)
+- `pct_born_us_citizen` - Proportion of population who were US citizens from birth (B05001)
+- `pct_naturalized_us_citizen` - Proportion of population who became US citizens thru naturalization (B05001)
+- `pct_not_us_citizen` - Proportion of population who are not US citizens (B05001)
