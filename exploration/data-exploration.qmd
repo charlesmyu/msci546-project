@@ -6,19 +6,20 @@ format: html
 
 ## Setup
 
-```{r}
+```{r, message=FALSE}
 library(readr)
 library(dplyr)
 library(car)
+library(MASS)
 ```
-
 
 ```{r}
 # Load data
 read_csv(
   "../data/master.csv", 
   col_types = "iiiccdddddddddddiddddddddddddddddddddddddddddddddddddddddd",
-  na = c("-")) ->
+  na = c("-")) |>
+  na.omit() ->
   raw_data
 
 head(raw_data)
@@ -26,6 +27,7 @@ head(raw_data)
 
 ```{r}
 # Convert percentages to proportions
+# Unfinished
 raw_data |>
   mutate(
     prop_born_us_citizen = pct_born_us_citizen / 100,
@@ -55,17 +57,16 @@ head(data)
 ```
 
 ```{r}
+# Create model with all features
 lm(microbusiness_density ~ ., data = raw_data[,-(1:5)]) ->
   model_full
-```
 
-```{r}
-# Check for perfect multicollinearity (alias)
+# Check for aliasing (perfect multicollinearity)
 alias(model_full)
 ```
 
 ```{r}
-# Remove perfect multicollinearity, check for and remove multicollinearity
+# Remove alias, check for multicollinearity
 lm(microbusiness_density ~ . - pct_not_us_citizen, data = raw_data[,-(1:5)]) ->
   model_no_alias
 
@@ -104,7 +105,6 @@ model_vif3 -> model_no_multicoll
 
 # Clean up to save memory
 rm(model_full)
-rm(model_no_alias)
 rm(model_vif1)
 rm(model_vif2)
 rm(model_vif3)
@@ -112,28 +112,93 @@ rm(model_vif3)
 
 ```{r}
 summary(model_no_multicoll)
-mean(summary(model_no_multicoll)$residuals^2) # MSE
 ```
 
+## Explore multicollinearity
+
 ```{r}
-lm(median_age ~ . - pct_not_us_citizen - microbusiness_density, data = raw_data[,-(1:5)]) ->
+lm(median_age ~ . - pct_not_us_citizen - microbusiness_density, 
+   data = raw_data[,-(1:5)]) ->
   model_age
 
 summary(model_age)
 ```
 
 ```{r}
-library(neuralnet)
+lm(pct_born_us_citizen ~ . - pct_not_us_citizen - microbusiness_density, 
+   data = raw_data[,-(1:5)]) ->
+  model_citizen
 
-neuralnet(microbusiness_density ~ . - pct_not_us_citizen - median_age - pct_born_us_citizen - pct_never_married, 
-   data = na.omit(raw_data[1:1000,-(1:5)]),
-   hidden = c(20,6),
-   linear.output = TRUE) ->
-  nn
-
-summary(nn)
+summary(model_citizen)
 ```
+
 ```{r}
+lm(pct_never_married ~ . - pct_not_us_citizen - microbusiness_density, 
+   data = raw_data[,-(1:5)]) ->
+  model_married
 
+summary(model_married)
 ```
+
+## Feature selection
+
+```{r}
+# Model selection
+# Define full model and empty model
+full <- lm(microbusiness_density ~ ., data = raw_data[,-(1:5)])
+empty <- lm(microbusiness_density ~ 1, data = raw_data[,-(1:5)])
+
+# Model selection using AIC criterion
+stepAIC(object = empty, 
+        scope = list(upper = full, lower = empty), 
+        direction = "both",
+        trace = 0) ->
+  model_AIC
+
+# summary(model_AIC)
+
+# BIC criterion
+stepAIC(object = empty, 
+        scope = list(upper = full, lower = empty), 
+        direction = "both",
+        trace = 0,
+        k = log(nrow(raw_data))) ->
+  model_BIC
+
+summary(model_BIC)
+```
+
+```{r}
+# Merge house price features, see effect
+raw_data |>
+  mutate(pct_house_price_gt250k = pct_house_price_gt1mill + pct_house_price_500k_1mill + pct_house_price_250k_500k, .keep = "unused") ->
+  data_merge_house_price
+
+full_merge_house_price <- lm(microbusiness_density ~ ., data = data_merge_house_price[,-(1:5)])
+empty_merge_house_price <- lm(microbusiness_density ~ 1, data = data_merge_house_price[,-(1:5)])
+
+
+# BIC criterion
+stepAIC(object = empty_merge_house_price, 
+        scope = list(upper = full_merge_house_price, lower = empty_merge_house_price), 
+        direction = "both",
+        trace = 0,
+        k = log(nrow(data_merge_house_price))) ->
+  model_BIC_merge_house_price
+
+summary(model_BIC_merge_house_price)
+```
+
+```{r}
+# For BIC, lower is better
+BIC(model_no_alias)
+BIC(model_no_multicoll)
+BIC(model_BIC)
+BIC(model_BIC_merge_house_price)
+```
+
+```{r}
+vif(model_BIC)
+```
+
 
