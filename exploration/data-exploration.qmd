@@ -1,0 +1,139 @@
+---
+title: "Data Exploration"
+author: "Arden Song"
+format: html
+---
+
+## Setup
+
+```{r}
+library(readr)
+library(dplyr)
+library(car)
+```
+
+
+```{r}
+# Load data
+read_csv(
+  "../data/master.csv", 
+  col_types = "iiiccdddddddddddiddddddddddddddddddddddddddddddddddddddddd",
+  na = c("-")) ->
+  raw_data
+
+head(raw_data)
+```
+
+```{r}
+# Convert percentages to proportions
+raw_data |>
+  mutate(
+    prop_born_us_citizen = pct_born_us_citizen / 100,
+    prop_naturalized_us_citizen = pct_naturalized_us_citizen / 100,
+    prop_not_us_citizen = pct_not_us_citizen / 100,
+    prop_house_price_gt1mill = pct_house_price_gt1mill / 100,
+    prop_house_price_500k_1mill = pct_house_price_500k_1mill / 100,
+    prop_house_price_250k_500k = pct_house_price_250k_500k / 100, 
+    prop = pct_house_price_100k_250k / 100, 
+    prop = pct_housing_vacant / 100, 
+    prop = pct_housing_occupant_ratio_lt1 / 100, 
+    prop = pct_housing_grapi_gt35 / 100,
+    old_age_dependency_ratio = old_age_dependency_ratio / 100,
+    child_dependency_ratio = child_dependency_ratio / 100,
+    sex_ratio = sex_ratio / 100,
+    prop = pct_moved_from_abroad / 100,
+    prop = pct_moved_outside_state / 100,
+    prop = pct_moved_within_state / 100,
+    prop = pct_moved_within_county / 100,
+    prop = pct_households_married / 100,
+    # Unfinished
+    .keep = "unused"
+  ) ->
+  data
+
+head(data)
+```
+
+```{r}
+lm(microbusiness_density ~ ., data = raw_data[,-(1:5)]) ->
+  model_full
+```
+
+```{r}
+# Check for perfect multicollinearity (alias)
+alias(model_full)
+```
+
+```{r}
+# Remove perfect multicollinearity, check for and remove multicollinearity
+lm(microbusiness_density ~ . - pct_not_us_citizen, data = raw_data[,-(1:5)]) ->
+  model_no_alias
+
+vif(model_no_alias)
+```
+
+```{r}
+# Remove median_age
+lm(microbusiness_density ~ . - pct_not_us_citizen - median_age, data = raw_data[,-(1:5)]) ->
+  model_vif1
+
+vif(model_vif1)
+```
+
+```{r}
+# Remove pct_born_us_citizen
+lm(microbusiness_density ~ . - pct_not_us_citizen - median_age - pct_born_us_citizen, 
+   data = raw_data[,-(1:5)]) ->
+  model_vif2
+
+vif(model_vif2)
+```
+
+```{r}
+# Remove pct_never_married
+lm(microbusiness_density ~ . - pct_not_us_citizen - median_age - pct_born_us_citizen - pct_never_married, 
+   data = raw_data[,-(1:5)]) ->
+  model_vif3
+
+vif(model_vif3)
+```
+
+```{r}
+# No more multicollinearity
+model_vif3 -> model_no_multicoll
+
+# Clean up to save memory
+rm(model_full)
+rm(model_no_alias)
+rm(model_vif1)
+rm(model_vif2)
+rm(model_vif3)
+```
+
+```{r}
+summary(model_no_multicoll)
+mean(summary(model_no_multicoll)$residuals^2) # MSE
+```
+
+```{r}
+lm(median_age ~ . - pct_not_us_citizen - microbusiness_density, data = raw_data[,-(1:5)]) ->
+  model_age
+
+summary(model_age)
+```
+
+```{r}
+library(neuralnet)
+
+neuralnet(microbusiness_density ~ . - pct_not_us_citizen - median_age - pct_born_us_citizen - pct_never_married, 
+   data = na.omit(raw_data[1:1000,-(1:5)]),
+   hidden = c(20,6),
+   linear.output = TRUE) ->
+  nn
+
+summary(nn)
+```
+```{r}
+
+```
+
