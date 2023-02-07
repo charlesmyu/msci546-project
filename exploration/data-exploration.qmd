@@ -233,6 +233,10 @@ raw_data |>
 ```{r}
 library(lares)
 
-corr_var(data, microbusiness_density)
+corr_var(data[,-(1:5)], microbusiness_density)
+```
+
+```{r}
+write.csv(data, "master_reduced.csv", row.names = TRUE)
 ```
 
