@@ -198,7 +198,41 @@ BIC(model_BIC_merge_house_price)
 ```
 
 ```{r}
-vif(model_BIC)
+# Extract selected variables
+raw_data |>
+  dplyr::select(year, 
+         data_year, 
+         cfips, 
+         county, 
+         state, 
+         microbusiness_density,
+         pct_college,
+         pct_in_arts_industry,
+         pct_divorced,
+         pct_house_price_gt1mill,
+         pct_house_price_250k_500k,
+         pct_in_finance_industry,
+         pct_in_it_industry,
+         pct_employed_at_government,
+         pct_house_price_500k_1mill,
+         pct_housing_single_detached,
+         pct_employed_at_self_employed,
+         pct_with_libarts_degree,
+         median_hh_inc,
+         pct_insured,
+         total_population,
+         birth_rate,
+         pct_with_scieng_degree,
+         pct_moved_within_state,
+         pct_broadband,
+         median_age,
+         pct_moved_from_abroad) ->
+  data
 ```
 
+```{r}
+library(lares)
+
+corr_var(data, microbusiness_density)
+```
 
