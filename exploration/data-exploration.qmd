@@ -11,6 +11,7 @@ library(readr)
 library(dplyr)
 library(car)
 library(MASS)
+library(ggplot2)
 ```
 
 ```{r}
@@ -288,5 +289,12 @@ for (k in 1:K) {
 
 RMSE
 mean(RMSE)
+```
+
+```{r}
+ggplot(data, aes(x=`microbusiness_density`)) + 
+  geom_histogram(fill='cadetblue', color='black', bins=100) + 
+  ggtitle('Histogram of Microbusiness Density') + 
+  xlim(0, 200)
 ```
 
