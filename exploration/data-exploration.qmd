@@ -161,7 +161,6 @@ stepAIC(object = empty,
 stepAIC(object = empty, 
         scope = list(upper = full, lower = empty), 
         direction = "both",
-        trace = 0,
         k = log(nrow(raw_data))) ->
   model_BIC
 
@@ -238,5 +237,56 @@ corr_var(data[,-(1:5)], microbusiness_density)
 
 ```{r}
 write.csv(data, "master_reduced.csv", row.names = TRUE)
+```
+
+```{r}
+RSS <- c(crossprod(model_BIC$residuals))
+MSE <- RSS / length(model_BIC$residuals)
+RMSE <- sqrt(MSE)
+RMSE
+```
+
+```{r}
+sd(raw_data$microbusiness_density)
+```
+
+## Cross Validation
+
+```{r}
+# Load data
+read_csv(
+  "../data/master_reduced.csv", 
+  na = c("-")) |>
+  na.omit() ->
+  data
+
+# Remove year, state, county info
+data <- data[,-(1:5)]
+```
+
+```{r}
+# K fold cross validation
+set.seed(546)
+N <- nrow(data)
+K <- 5
+
+# (1:N)%%K + 1 produces a vector that goes 1 2 3 4 5 1 2 3 4 5 ...
+# taking a sample of that vectors randomizes the order of the numbers
+# we can use this to assign the N observations to one of 5 groups
+validSetSplits <- sample((1:N)%%K + 1)
+
+RMSE <- c()
+
+for (k in 1:K) {
+  validSet <- data[validSetSplits==k,]
+  trainSet <- data[validSetSplits!=k,]   
+  
+  model <- lm(microbusiness_density ~ ., dat=trainSet)
+  preds <- predict(model, newdata = validSet)
+  RMSE[k] <- sqrt(mean((validSet$microbusiness_density - preds)^2)) 
+}
+
+RMSE
+mean(RMSE)
 ```
 
