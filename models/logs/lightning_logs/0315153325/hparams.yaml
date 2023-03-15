@@ -1,0 +1,13 @@
+batch_size: 32
+clip_grad_norm: 0
+dataloader: !!python/name:__main__.MicroDensityDataModule ''
+display_freq: 64
+epoch: 50
+load: null
+logdir: ./logs
+lr: 0.001
+num_workers: 0
+resume_from_checkpoint: null
+seed: 42
+val_freq: 0.5
+val_ratio: 0.2
